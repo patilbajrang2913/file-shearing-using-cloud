@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum File Share - Advanced File Sharing Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a0033 25%, #000066 50%, #1a0033 75%, #0c0c0c 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-delay: 0s; }
+        .shape:nth-child(2) { width: 120px; height: 120px; left: 20%; animation-delay: 2s; }
+        .shape:nth-child(3) { width: 60px; height: 60px; left: 70%; animation-delay: 4s; }
+        .shape:nth-child(4) { width: 100px; height: 100px; left: 80%; animation-delay: 6s; }
+        .shape:nth-child(5) { width: 140px; height: 140px; left: 50%; animation-delay: 8s; }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Grid Pattern */
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-card {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 0 60px rgba(138, 43, 226, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #8a2be2, transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #8a2be2, #00bfff);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8a2be2, #00bfff, #ff1493);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.5)); }
+            50% { filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.5)); }
+        }
+
+        .subtitle {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #8a2be2, #00bfff);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            border: 2px dashed #8a2be2;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(138, 43, 226, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(138, 43, 226, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .upload-area:hover::before {
+            opacity: 1;
+            animation: shimmerMove 1.5s ease-in-out infinite;
+        }
+
+        @keyframes shimmerMove {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .upload-area.dragover {
+            border-color: #00bfff;
+            background: rgba(0, 191, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area.has-file {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #8a2be2;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1);
+            color: #00bfff;
+        }
+
+        .upload-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        /* File Info */
+        .file-info {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00ff88, #00bfff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .file-meta {
+            flex: 1;
+        }
+
+        .file-name {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #8a2be2, #00bfff);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #333, #555);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+        }
+
+        /* Input Fields */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #8a2be2;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .input-field::placeholder {
+            color: #888;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #8a2be2, #00bfff);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShimmer 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Result Cards */
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .result-status {
+            color: #00ff88;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .share-code {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            color: #00bfff;
+            font-size: 0.9rem;
+            word-break: break-all;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .share-code::before {
+            content: 'Share Code';
+            position: absolute;
+            top: -8px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #888;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* QR Code */
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .qr-container.show {
+            display: block;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* Features Panel */
+        .features-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #8a2be2;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #8a2be2;
+            margin-bottom: 10px;
+        }
+
+        .feature-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .feature-desc {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #8a2be2, #00bfff);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #8a2be2, #00bfff);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #2ed573, #1dd1a1);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .main-card {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .features-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Sound Effects */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            color: #ff4757;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+    <div class="grid-pattern"></div>
+
+    <!-- Sound Toggle -->
+    <div class="sound-toggle" id="soundToggle">
+        <i class="fas fa-volume-up"></i>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Notification message</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="main-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h1 class="title">Quantum File Share</h1>
+                <p class="subtitle">Advanced secure file sharing with quantum-level encryption</p>
+            </div>
+
+            <!-- Features Panel -->
+            <div class="features-panel">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="feature-title">Secure</div>
+                    <div class="feature-desc">End-to-end encryption</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="feature-title">Fast</div>
+                    <div class="feature-desc">Lightning-fast transfers</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+                    <div class="feature-title">QR Codes</div>
+                    <div class="feature-desc">Easy sharing with QR</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                    <div class="feature-title">Expiration</div>
+                    <div class="feature-desc">Auto-delete files</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="send">
+                    <i class="fas fa-upload"></i>
+                    Send File
+                </button>
+                <button class="nav-tab" data-tab="receive">
+                    <i class="fas fa-download"></i>
+                    Receive File
+                </button>
+                <button class="nav-tab" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </button>
+            </div>
+
+            <!-- Send File Section -->
+            <div class="content-section active" id="sendSection">
+                <!-- Settings Panel -->
+                <div class="settings-panel">
+                    <div class="settings-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Upload Settings
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Password Protection</span>
+                        <div class="toggle-switch" id="passwordToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Auto Expiration (24h)</span>
+                        <div class="toggle-switch active" id="expirationToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Compress Files</span>
+                        <div class="toggle-switch" id="compressionToggle"></div>
+                    </div>
+                </div>
+
+                <!-- Password Input (Hidden by default) -->
+                <div class="input-group" id="passwordGroup" style="display: none;">
+                    <label class="input-label">File Password</label>
+                    <input type="password" class="input-field" id="filePassword" placeholder="Enter password for file protection">
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Drop your files here</div>
+                    <div class="upload-subtext">or click to browse • Max 100MB • Multiple files supported</div>
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                </div>
+
+                <!-- File Info -->
+                <div class="file-info" id="fileInfo">
+                    <div class="file-details">
+                        <div class="file-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="file-meta">
+                            <div class="file-name" id="fileName">No file selected</div>
+                            <div class="file-size" id="fileSize">0 bytes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <!-- Upload Button -->
+                <button class="btn" id="uploadBtn" disabled>
+                    <i class="fas fa-rocket"></i>
+                    Generate Share Code
+                </button>
+
+                <!-- Result Card -->
+                <div class="result-card" id="uploadResult">
+                    <div class="result-header">
+                        <div class="result-title">Share Code Generated</div>
+                        <div class="result-status">
+                            <i class="fas fa-check-circle"></i>
+                            Ready to share
+                        </div>
+                    </div>
+                    <div class="share-code" id="shareCodeDisplay"></div>
+                    
+                    <!-- QR Code -->
+                    <div class="qr-container" id="qrContainer">
+                        <div class="qr-code" id="qrCode"></div>
+                        <div style="color: #b0b0b0; font-size: 0.9rem;">Scan QR code to share</div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="copyBtn">
+                        <i class="fas fa-copy"></i>
+                        Copy Share Code
+                    </button>
+                    <button class="btn btn-secondary" id="shareBtn">
+                        <i class="fas fa-share-alt"></i>
+                        Share via Web Share API
+                    </button>
+                </div>
+            </div>
+
+            <!-- Receive File Section -->
+            <div class="content-section" id="receiveSection">
+                <div class="input-group">
+                    <label class="input-label">Enter Share Code or Scan QR</label>
+                    <input type="text" class="input-field" id="shareCodeInput" placeholder="Paste share code here or scan QR code">
+                </div>
+
+                <button class="btn" id="qrScanBtn">
+                    <i class="fas fa-qrcode"></i>
+                    Scan QR Code
+                </button>
+
+                <button class="btn" id="downloadBtn">
+                    <i class="fas fa-download"></i>
+                    Get Shared File
+                </button>
+
+                <!-- Download Result -->
+                <div class="result-card" id="downloadResult">
+                    <div class="result-header">
+                        <div class="result-title">File Ready for Download</div>
+                        <div class="result-status">
+                            <i class="fas fa-check-circle"></i>
+                            Available
+                        </div>
+                    </div>
+                    <div class="file-info show">
+                        <div class="file-details">
+                            <div class="file-icon">
+                                <i class="fas fa-file" id="downloadFileIcon"></i>
+                            </div>
+                            <div class="file-meta">
+                                <div class="file-name" id="downloadFileName">File name</div>
+                                <div class="file-size" id="downloadFileSize">File size</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" id="finalDownloadBtn">
+                        <i class="fas fa-download"></i>
+                        Download File
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="content-section" id="settingsSection">
+                <div class="settings-panel">
+                    <div class="settings-title">
+                        <i class="fas fa-cog"></i>
+                        Application Settings
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Sound Effects</span>
+                        <div class="toggle-switch active" id="soundEffectsToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Auto-generate QR Codes</span>
+                        <div class="toggle-switch active" id="autoQRToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Show Upload Progress</span>
+                        <div class="toggle-switch active" id="progressToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Dark Theme</span>
+                        <div class="toggle-switch active" id="themeToggle"></div>
+                    </div>
+                </div>
+
+                <div class="settings-panel">
+                    <div class="settings-title">
+                        <i class="fas fa-info-circle"></i>
+                        About Quantum File Share
+                    </div>
+                    <p style="color: #b0b0b0; line-height: 1.6; margin-bottom: 15px;">
+                        Quantum File Share is an advanced file sharing platform that uses cutting-edge technology 
+                        to provide secure, fast, and reliable file transfers. Built with modern web technologies 
+                        and powered by Appwrite backend services.
+                    </p>
+                    <div style="color: #8a2be2; font-weight: 600;">
+                        Version 2.0.0 • Built with ❤️ for the future
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <p style="color: #666; font-size: 0.9rem;">
+                    Powered by Appwrite • End-to-end encrypted • No registration required
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Appwrite Configuration
+        const client = new Appwrite.Client()
+            .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Replace with your endpoint
+            .setProject('6880964b002d34038d04'); // Replace with your project ID
+
+        const storage = new Appwrite.Storage(client);
+        const BUCKET_ID = '688097270013c90cf85d'; // Replace with your bucket ID
+
+        // Global Variables
+        let selectedFiles = [];
+        let soundEnabled = true;
+        let settings = {
+            passwordProtection: false,
+            autoExpiration: true,
+            compression: false,
+            soundEffects: true,
+            autoQR: true,
+            showProgress: true,
+            darkTheme: true
+        };
+
+        // Sound Effects
+        const playSound = (type) => {
+            if (!soundEnabled) return;
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            const frequencies = {
+                success: 800,
+                error: 300,
+                click: 600,
+                upload: 1000
+            };
+            
+            oscillator.frequency.setValueAtTime(frequencies[type] || 600, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        };
+
+        // Notification System
+        const showNotification = (message, type = 'info') => {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            playSound(type);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        };
+
+        // File Utilities
+        const formatFileSize = (bytes) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
+        const getFileIcon = (fileName) => {
+            const extension = fileName.split('.').pop().toLowerCase();
+            const iconMap = {
+                pdf: 'fas fa-file-pdf',
+                doc: 'fas fa-file-word',
+                docx: 'fas fa-file-word',
+                xls: 'fas fa-file-excel',
+                xlsx: 'fas fa-file-excel',
+                ppt: 'fas fa-file-powerpoint',
+                pptx: 'fas fa-file-powerpoint',
+                jpg: 'fas fa-file-image',
+                jpeg: 'fas fa-file-image',
+                png: 'fas fa-file-image',
+                gif: 'fas fa-file-image',
+                mp4: 'fas fa-file-video',
+                avi: 'fas fa-file-video',
+                mp3: 'fas fa-file-audio',
+                wav: 'fas fa-file-audio',
+                zip: 'fas fa-file-archive',
+                rar: 'fas fa-file-archive',
+                txt: 'fas fa-file-alt',
+                js: 'fas fa-file-code',
+                html: 'fas fa-file-code',
+                css: 'fas fa-file-code'
+            };
+            return iconMap[extension] || 'fas fa-file';
+        };
+
+        // Tab Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                playSound('click');
+                
+                // Remove active class from all tabs and sections
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding section
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Section').classList.add('active');
+            });
+        });
+
+        // Toggle Switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                playSound('click');
+                toggle.classList.toggle('active');
+                
+                // Handle specific toggles
+                const toggleId = toggle.id;
+                if (toggleId === 'passwordToggle') {
+                    const passwordGroup = document.getElementById('passwordGroup');
+                    passwordGroup.style.display = toggle.classList.contains('active') ? 'block' : 'none';
+                    settings.passwordProtection = toggle.classList.contains('active');
+                } else if (toggleId === 'soundEffectsToggle') {
+                    soundEnabled = toggle.classList.contains('active');
+                    settings.soundEffects = toggle.classList.contains('active');
+                    document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+                }
+            });
+        });
+
+        // Sound Toggle Button
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+            document.getElementById('soundEffectsToggle').classList.toggle('active', soundEnabled);
+            
+            if (soundEnabled) {
+                playSound('success');
+            }
+        });
+
+        // File Upload Handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // Drag and Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('dragover');
+            });
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            
+            selectedFiles = files;
+            playSound('success');
+            
+            uploadArea.classList.add('has-file');
+            fileInfo.classList.add('show');
+            
+            if (files.length === 1) {
+                fileName.textContent = files[0].name;
+                fileSize.textContent = formatFileSize(files[0].size);
+                document.querySelector('.file-icon i').className = getFileIcon(files[0].name);
+            } else {
+                fileName.textContent = `${files.length} files selected`;
+                const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+                fileSize.textContent = formatFileSize(totalSize);
+                document.querySelector('.file-icon i').className = 'fas fa-files';
+            }
+            
+            uploadBtn.disabled = false;
+        }
+
+        // Upload Function
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                showNotification('Please select files to upload', 'error');
+                return;
+            }
+
+            playSound('upload');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<div class="spinner"></div> Uploading...';
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            if (settings.showProgress) {
+                progressContainer.classList.add('show');
+            }
+
+            try {
+                const uploadPromises = selectedFiles.map(async (file, index) => {
+                    const fileId = Appwrite.ID.unique();
+                    
+                    // Simulate progress
+                    const progressInterval = setInterval(() => {
+                        const currentProgress = parseInt(progressBar.style.width) || 0;
+                        if (currentProgress < 90) {
+                            progressBar.style.width = (currentProgress + Math.random() * 10) + '%';
+                        }
+                    }, 200);
+
+                    const result = await storage.createFile(
+                        BUCKET_ID,
+                        fileId,
+                        file,
+                        [Appwrite.Permission.read(Appwrite.Role.any())]
+                    );
+
+                    clearInterval(progressInterval);
+                    return { ...result, originalName: file.name, size: file.size };
+                });
+
+                const uploadResults = await Promise.all(uploadPromises);
+                progressBar.style.width = '100%';
+
+                // Generate share code
+                const shareData = {
+                    files: uploadResults.map(result => ({
+                        fileId: result.$id,
+                        fileName: result.originalName,
+                        fileSize: result.size
+                    })),
+                    timestamp: Date.now(),
+                    password: settings.passwordProtection ? document.getElementById('filePassword').value : null,
+                    expiresAt: settings.autoExpiration ? Date.now() + (24 * 60 * 60 * 1000) : null
+                };
+
+                const shareCode = btoa(JSON.stringify(shareData));
+                
+                // Display results
+                document.getElementById('shareCodeDisplay').textContent = shareCode;
+                document.getElementById('uploadResult').classList.add('show');
+                
+                // Generate QR Code
+                if (settings.autoQR) {
+                    const qrContainer = document.getElementById('qrContainer');
+                    const qrCodeElement = document.getElementById('qrCode');
+                    qrCodeElement.innerHTML = '';
+                    
+                    QRCode.toCanvas(qrCodeElement, shareCode, {
+                        width: 200,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    });
+                    
+                    qrContainer.classList.add('show');
+                }
+
+                showNotification('Files uploaded successfully!', 'success');
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification('Upload failed. Please check your configuration.', 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-rocket"></i> Generate Share Code';
+                progressContainer.classList.remove('show');
+                progressBar.style.width = '0%';
+            }
+        });
+
+        // Copy Share Code
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            const shareCode = document.getElementById('shareCodeDisplay').textContent;
+            
+            try {
+                await navigator.clipboard.writeText(shareCode);
+                document.getElementById('copyBtn').innerHTML = '<i class="fas fa-check"></i> Copied!';
+                showNotification('Share code copied to clipboard!', 'success');
+                
+                setTimeout(() => {
+                    document.getElementById('copyBtn').innerHTML = '<i class="fas fa-copy"></i> Copy Share Code';
+                }, 2000);
+            } catch (error) {
+                showNotification('Failed to copy to clipboard', 'error');
+            }
+        });
+
+        // Web Share API
+        document.getElementById('shareBtn').addEventListener('click', async () => {
+            const shareCode = document.getElementById('shareCodeDisplay').textContent;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Quantum File Share',
+                        text: 'I\'ve shared a file with you using Quantum File Share!',
+                        url: `${window.location.origin}?code=${encodeURIComponent(shareCode)}`
+                    });
+                    showNotification('Shared successfully!', 'success');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        showNotification('Sharing failed', 'error');
+                    }
+                }
+            } else {
+                showNotification('Web Share API not supported', 'error');
+            }
+        });
+
+        // Download Function
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            const shareCode = document.getElementById('shareCodeInput').value.trim();
+            
+            if (!shareCode) {
+                showNotification('Please enter a share code', 'error');
+                return;
+            }
+
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('downloadBtn').innerHTML = '<div class="spinner"></div> Processing...';
+
+            try {
+                const shareData = JSON.parse(atob(shareCode));
+                
+                // Check expiration
+                if (shareData.expiresAt && Date.now() > shareData.expiresAt) {
+                    showNotification('Share code has expired', 'error');
+                    return;
+                }
+
+                // Handle password protection
+                if (shareData.password) {
+                    const enteredPassword = prompt('This file is password protected. Enter password:');
+                    if (enteredPassword !== shareData.password) {
+                        showNotification('Incorrect password', 'error');
+                        return;
+                    }
+                }
+
+                const files = shareData.files;
+                
+                if (files.length === 1) {
+                    // Single file
+                    const file = files[0];
+                    document.getElementById('downloadFileName').textContent = file.fileName;
+                    document.getElementById('downloadFileSize').textContent = formatFileSize(file.fileSize);
+                    document.getElementById('downloadFileIcon').className = getFileIcon(file.fileName);
+                    
+                    const downloadUrl = storage.getFileDownload(BUCKET_ID, file.fileId);
+                    document.getElementById('finalDownloadBtn').onclick = () => {
+                        window.open(downloadUrl.href, '_blank');
+                        playSound('success');
+                    };
+                } else {
+                    // Multiple files
+                    document.getElementById('downloadFileName').textContent = `${files.length} files`;
+                    const totalSize = files.reduce((sum, file) => sum + file.fileSize, 0);
+                    document.getElementById('downloadFileSize').textContent = formatFileSize(totalSize);
+                    document.getElementById('downloadFileIcon').className = 'fas fa-files';
+                    
+                    document.getElementById('finalDownloadBtn').onclick = () => {
+                        files.forEach(file => {
+                            const downloadUrl = storage.getFileDownload(BUCKET_ID, file.fileId);
+                            window.open(downloadUrl.href, '_blank');
+                        });
+                        playSound('success');
+                    };
+                }
+
+                document.getElementById('downloadResult').classList.add('show');
+                showNotification('Files ready for download!', 'success');
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showNotification('Invalid share code or file not found', 'error');
+            } finally {
+                document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('downloadBtn').innerHTML = '<i class="fas fa-download"></i> Get Shared File';
+            }
+        });
+
+        // QR Code Scanner (Mock implementation)
+        document.getElementById('qrScanBtn').addEventListener('click', () => {
+            showNotification('QR Scanner would open camera here (requires additional libraries)', 'info');
+            // In a real implementation, you would integrate with a QR code scanning library
+        });
+
+        // Check for share code in URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                document.getElementById('shareCodeInput').value = decodeURIComponent(code);
+                // Switch to receive tab
+                document.querySelector('[data-tab="receive"]').click();
+                showNotification('Share code loaded from URL!', 'success');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            showNotification('Quantum File Share initialized!', 'success');
+        });
+    </script>
+</body>
+</html>
